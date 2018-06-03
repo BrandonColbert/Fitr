@@ -40,10 +40,7 @@ SerialConnection::SerialConnection(string port, int baudRate, int waitTime) {
 }
 
 SerialConnection::~SerialConnection() {
-	if(_connected) {
-		_connected = false;
-		CloseHandle(handle);
-	}
+	disconnect();
 }
 
 void SerialConnection::simpleRead() {
@@ -60,4 +57,9 @@ void SerialConnection::simpleRead(ostream &stream) {
 
 bool SerialConnection::connected() {
 	return _connected;
+}
+
+void SerialConnection::disconnect() {
+	if(_connected) CloseHandle(handle);
+	_connected = false;
 }

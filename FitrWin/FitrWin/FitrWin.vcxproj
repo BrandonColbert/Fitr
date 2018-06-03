@@ -26,7 +26,7 @@
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
-    <ConfigurationType>Application</ConfigurationType>
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
     <PlatformToolset>v141</PlatformToolset>
     <CharacterSet>MultiByte</CharacterSet>
@@ -39,7 +39,7 @@
     <CharacterSet>MultiByte</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
-    <ConfigurationType>Application</ConfigurationType>
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
     <PlatformToolset>v141</PlatformToolset>
     <CharacterSet>MultiByte</CharacterSet>
@@ -69,7 +69,15 @@
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
-  <PropertyGroup />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <SourcePath>C:\Users\Dash\Documents\GitHub\Hybrid\Fitr\FitrArduino\Fitr;$(SourcePath)</SourcePath>
+    <IncludePath>C:\Users\Dash\Documents\GitHub\Hybrid\Fitr\FitrArduino\Fitr;$(IncludePath)</IncludePath>
+    <ReferencePath>C:\Users\Dash\Documents\GitHub\Hybrid\Fitr\FitrArduino\Fitr;$(ReferencePath)</ReferencePath>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <SourcePath>C:\Users\Dash\Documents\GitHub\Hybrid\Fitr\FitrArduino\Fitr;$(SourcePath)</SourcePath>
+    <IncludePath>C:\Users\Dash\Documents\GitHub\Hybrid\Fitr\FitrArduino\Fitr;$(IncludePath)</IncludePath>
+  </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
@@ -115,12 +123,21 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="FitrPrint.h" />
+    <ClCompile Include="..\..\FitrArduino\Fitr\Hand.cpp" />
+    <ClCompile Include="FitrManager.cpp" />
     <ClCompile Include="FitrWin.cpp" />
     <ClCompile Include="SerialConnection.cpp" />
     <ClCompile Include="SerialHandler.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\..\FitrArduino\Fitr\Fitr.h" />
+    <ClInclude Include="..\..\FitrArduino\Fitr\Hand.h" />
+    <ClInclude Include="..\..\FitrArduino\Fitr\List.h" />
+    <ClInclude Include="..\..\FitrArduino\Fitr\Quaternion.h" />
+    <ClInclude Include="..\..\FitrArduino\Fitr\Transmit.h" />
+    <ClInclude Include="CSInterface.h" />
+    <ClInclude Include="FitrManager.h" />
+    <ClInclude Include="FitrPrint.h" />
     <ClInclude Include="SerialConnection.h" />
     <ClInclude Include="SerialHandler.h" />
   </ItemGroup>

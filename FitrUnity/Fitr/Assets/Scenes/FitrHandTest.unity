@@ -1604,7 +1604,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   hand: {fileID: 170182752}
-  autoTest: 1
+  autoTest: 0
   testers:
   - fingerNumber: 0
     rotation: {x: 0, y: 0, z: 0}

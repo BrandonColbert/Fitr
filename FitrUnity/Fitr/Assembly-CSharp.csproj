@@ -51,6 +51,7 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+     <Compile Include="Assets\Scripts\CPPInterface.cs" />
      <Compile Include="Assets\Scripts\FingerMotionTest.cs" />
      <Compile Include="Assets\Scripts\FitrHand.cs" />
  <Reference Include="UnityEngine.UI">

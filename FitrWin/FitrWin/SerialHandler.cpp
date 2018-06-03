@@ -4,14 +4,20 @@ using namespace std;
 using namespace Transmit;
 using namespace FitrPrint;
 
-void SerialHandler::handle(SerialConnection serial, void (*utilize)(char, char*, int)) {
+void SerialHandler::handle(SerialConnection &serial) {
+	while (serial.connected()) {
+		serial.simpleRead();
+	}
+}
+
+void SerialHandler::handleWith(SerialConnection &serial, FitrManager &manager) {
 	bool ensure = false;
 
 	char transmitCode = Code::NONE;
 	int amount = -1;
 	List<char> data;
 
-	while (serial.connected()) {
+	while(serial.connected()) {
 		char buffer[1] = "";
 
 		if (serial.read(buffer, 1) > 0) {
@@ -22,7 +28,9 @@ void SerialHandler::handle(SerialConnection serial, void (*utilize)(char, char*,
 				else if (amount == -1) {
 					amount = buffer[0];
 
+#ifdef DEBUG_FITR
 					println("Found code ", (int)transmitCode, " with size of ", amount, " bytes");
+#endif
 				}
 				else if (amount > 0) {
 					amount--;
@@ -30,12 +38,13 @@ void SerialHandler::handle(SerialConnection serial, void (*utilize)(char, char*,
 					data.add(buffer[0]);
 
 					if (amount == 0) {
+#ifdef DEBUG_FITR
 						for (int i = 0; i < data.size(); i++) {
 							println("\t-> ", (int)data[i]);
 						}
-
+#endif
 						char *dataArray = data.array();
-						utilize(transmitCode, dataArray, data.size());
+						manager.utilize(transmitCode, dataArray, data.size());
 						delete dataArray;
 
 						transmitCode = Code::NONE;
@@ -50,7 +59,7 @@ void SerialHandler::handle(SerialConnection serial, void (*utilize)(char, char*,
 			cout << "Waking up the device" << endl;
 
 			char wake[] = TC_START;
-			if (serial.write(wake, strlen(wake)) > 0) {
+			if(serial.write(wake, (unsigned int)strlen(wake)) > 0) {
 				cout << "Reading..." << endl;
 			}
 			else {

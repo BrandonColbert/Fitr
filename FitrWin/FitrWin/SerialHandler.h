@@ -7,15 +7,20 @@
 #include <fstream>
 #include <string>
 
-#include "../../FitrArduino/Fitr/Fitr.h"
+#include "Fitr.h"
 
 #include "SerialConnection.h"
 #include "FitrPrint.h"
 
+class FitrManager;
+
 class SerialHandler {
 	public:
 		SerialHandler() {}
-		void handle(SerialConnection, void (*)(char, char*, int));
+		void handle(SerialConnection&);
+		void handleWith(SerialConnection&, FitrManager&);
 };
+
+#include "FitrManager.h"
 
 #endif

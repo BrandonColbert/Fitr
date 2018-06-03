@@ -1,0 +1,15 @@
+{
+  "version": "0.2.1",
+  "tasks": [
+    {
+      "taskName": "task-FitrWin",
+      "appliesTo": "FitrWin/FitrWin.sln",
+      "type": "launch"
+    },
+    {
+      "taskName": "task-Fitr",
+      "appliesTo": "FitrArduino/Fitr/",
+      "type": "launch"
+    }
+  ]
+}

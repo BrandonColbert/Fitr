@@ -1,7 +1,13 @@
 #include "Hand.h"
 
-Hand::Hand(int totalFingers) {
-    fingers = new Finger[totalFingers];
+Hand::Hand() {}
+Hand::Hand(int totalFingers) : fingers(new Finger[totalFingers]), totalFingers(totalFingers) {}
+
+Hand::Hand(Hand &source) : fingers(new Finger[source.totalFingers]), totalFingers(source.totalFingers) {
+    for(int i = 0; i < totalFingers; i++) {
+        fingers[i].flex = source[i].flex;
+        fingers[i].rotation = source[i].rotation;
+    }
 }
 
 Hand::~Hand() {

@@ -24,8 +24,11 @@
     <ClCompile Include="SerialHandler.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="FitrPrint.h">
-      <Filter>Header Files</Filter>
+    <ClCompile Include="FitrManager.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\FitrArduino\Fitr\Hand.cpp">
+      <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -33,6 +36,30 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="SerialHandler.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="FitrPrint.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="FitrManager.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\FitrArduino\Fitr\Fitr.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\FitrArduino\Fitr\Hand.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\FitrArduino\Fitr\List.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\FitrArduino\Fitr\Quaternion.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\FitrArduino\Fitr\Transmit.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="CSInterface.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

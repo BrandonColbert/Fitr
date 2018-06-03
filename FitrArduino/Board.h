@@ -15,7 +15,7 @@ class Board {
         Component& getComponent(const char*);
         Component& getComponent(int);
         void removeComponent(const char*);
-        List<Component*> getComponents();
+        List<Component*>& getComponents();
 };
 
 #endif

@@ -7,15 +7,9 @@ class Element {
         Element<T> *next;
         T value;
 
-        Element(Element<T> *next, T t) {
-            this->next = next;
-            value = t;
-        }
-
-        Element(T t) {
-            next = nullptr;
-            value = t;
-        }
+		Element(T t) : next(nullptr), value(t) {}
+		Element(Element<T> *n, T t) : next(n), value(t) {}
+		Element(Element<T> &other) : next(other.next), value(other.value) {}
 };
 
 template<typename T>
@@ -26,6 +20,16 @@ class List {
     public:
         List() {}
 
+		List(const List<T> &other) {
+			clear();
+			addAll(other);
+		}
+
+		List(List<T> &&other) {
+			clear();
+			addAll(other);
+		}
+
         template<typename ...Ts>
         List(Ts ...ts) {
             add(ts...);
@@ -34,6 +38,37 @@ class List {
         ~List() {
             clear();
         }
+
+		List<T>& operator=(List<T> &other) {
+			clear();
+			addAll(other);
+
+			return *this;
+		}
+
+        void addAll(List<T> &&other) {
+            for(int i = 0; i < other.size(); i++) {
+                add(other[i]);
+            }
+        }
+
+        void addAll(List<T> &other) {
+            for(int i = 0; i < other.size(); i++) {
+                add(other[i]);
+            }
+        }
+
+		List<T>& operator+=(T t) {
+			add(t);
+
+			return *this;
+		}
+
+		List<T>& operator+=(List<T> other) {
+			addAll(other);
+
+			return *this;
+		}
 
         void add(T t) {
             if(first == nullptr) {
@@ -110,8 +145,16 @@ class List {
 
             return false;
         }
+		/*
+		T& get(int index) const {
+			return (*this)[index];
+		}
 
-        T operator[](int index) {
+		void set(int index, T t) {
+			(*this)[index] = t;
+		}*/
+
+        T& operator[](int index) {
             Element<T> *next = first;
 
             for(int i = 0; i < index; i++) {
@@ -121,7 +164,20 @@ class List {
             return next->value;
         }
 
-        int size() {
+        List<T> subset(int start, int end) {
+            //if(start < 0) throw "Start index for list subset can't be less than zero";
+            //if(end > _size) throw "End index for list subset greater than size";
+
+            List<T> ss;
+
+            for(int i = 0; i < 1 + end - start; i++) {
+                ss.add((*this)[start + i]);
+            }
+
+            return ss;
+        }
+
+        int size() const {
             return _size;
         }
 
@@ -129,7 +185,7 @@ class List {
             T *arr = new T[_size];
 
             for(int i = 0; i < _size; i++) {
-                arr[i] = (*this)[i];
+				arr[i] = (*this)[i];
             }
 
             return arr;

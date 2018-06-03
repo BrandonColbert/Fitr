@@ -4,7 +4,7 @@ FlexSensor::FlexSensor(int pin, float inVolts, float resistor) {
 	this->pin = pin;
 	this->inVolts = inVolts;
 	this->resistor = resistor;
-	lowestFR = highestFR = fr = -resistor;//lowestFR = -2195.0f;
+	lowestFR = highestFR = fr = 0;// = -resistor;//lowestFR = -2195.0f;
 	maxTransitionPercent = 100.0f;
 }
 
@@ -37,6 +37,13 @@ void FlexSensor::transitionTo(float &original, float target) {
 }
 
 float FlexSensor::getFlex() {
+	if(fr == 0) {
+		calculateFlexResistance();
+		lowestFR = highestFR = fr;
+
+		return 0;
+	}
+
 	calculateFlexResistance();
 
 	if(fr > lowestFR) {

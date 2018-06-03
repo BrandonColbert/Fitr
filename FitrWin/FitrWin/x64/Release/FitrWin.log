@@ -1,0 +1,8 @@
+﻿  Hand.cpp
+  FitrManager.cpp
+c:\users\dash\documents\github\hybrid\fitr\fitrwin\fitrwin\fitrmanager.h(9): fatal error C1083: Cannot open include file: 'Fitr.h': No such file or directory
+  FitrWin.cpp
+c:\users\dash\documents\github\hybrid\fitr\fitrwin\fitrwin\fitrmanager.h(9): fatal error C1083: Cannot open include file: 'Fitr.h': No such file or directory
+  SerialConnection.cpp
+  SerialHandler.cpp
+c:\users\dash\documents\github\hybrid\fitr\fitrwin\fitrwin\fitrmanager.h(9): fatal error C1083: Cannot open include file: 'Fitr.h': No such file or directory

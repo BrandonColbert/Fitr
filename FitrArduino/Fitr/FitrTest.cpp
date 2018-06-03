@@ -1,4 +1,5 @@
 #include <iostream>
+#include <iomanip>
 
 #include "Fitr.h"
 
@@ -13,19 +14,21 @@ ostream& operator<<(ostream &stream, Quaternion &angles) {
 	return stream << "Quaternion(" << angles.x << ", " << angles.y << ", " << angles.z << ", " << angles.w << ")";
 }
 
+ostream& operator<<(ostream &stream, AccelGyro &angles) {
+	return stream << "AccelGyro(" << angles.ax << ", " << angles.ay << ", " << angles.az << ", " << angles.gx << ", " << angles.gy << ", " << angles.gz  << ")";
+}
+
 int main() {
-	while(true) {
-		int value = -21903;
-		List<char> data = encode(value);
+	float value = 20734.52474f;
+	List<char> data = encodeFloat(value);
 
-		//ENCODE SEEMINGLY DESTROYS ITSELF OVER A CERTAIN AMOUNT OF USES AND BECOMES INCONSISTENT
+	float re;
+	char *arr = data.array();
+	decodeFloat(re, arr, data.size());
+	delete arr;
+	data.clear();
 
-		cout << "~Hello World Test~" << endl;
-		cout << (int)Code::INT << endl;
-		for(int i = 0; i < data.size(); i++) {
-	    	cout << (int)data[i] << endl;
-		}
-	}
+	cout << "Reconstructed " << setprecision(12) << re << ", original was " << value << endl;
 
     return 0;
 }
@@ -130,6 +133,104 @@ void example5() {
 	decode(remake, data.array(), size);
 
 	cout << remake << endl;
+}
+
+void example6() {
+	Hand *hand = new Hand(5);
+
+	cout << "Created hands" << endl;
+
+	(*hand)[0].flex = 1.2f;
+	(*hand)[1].flex = 0.1f;
+	(*hand)[2].flex = 100.0f;
+	(*hand)[3].flex = 38.323f;
+	(*hand)[4].flex = 21017.28f;
+
+	cout << "Set hand flexes" << endl;
+
+	for(int i = 0; i < hand->totalFingers; i++) {
+		cout << "Finger(" << i << "): " << (*hand)[i].flex << endl;
+	}
+
+	cout << "Finished reading hand flex values" << endl;
+}
+
+void example7() {
+	List<int> list1(19, 1, 83, 29);
+
+	cout << "\tList 1 size: " << list1.size() << endl;
+	cout << "\tList 1 is:" << endl;
+
+	for(int i = 0; i < list1.size(); i++) {
+		cout << list1[i] << endl;
+	}
+
+	List<int> list2(-219, 18, 90, 232, -12);
+
+	cout << "\tList 2 size: " << list2.size() << endl;
+	cout << "\tList 2 is:" << endl;
+
+	for(int i = 0; i < list2.size(); i++) {
+		cout << list2[i] << endl;
+	}
+
+	list1.addAll(list2);
+	list1.addAll(List<int>(10000, -1234, 919, 812, -9));
+
+	cout << "\tAdded list 2 and some other numbers to list 1 " << endl;
+	cout << "\tList 1 size: " << list1.size() << endl;
+	cout << "\tList 1 is:" << endl;
+
+	for(int i = 0; i < list1.size(); i++) {
+		cout << "At " << i << ": " << list1[i] << endl;
+	}
+
+	int start1 = 6, end1 = 11;
+	cout << "\tGetting indices " << start1 << " to " << end1 << " from list 1" << endl;
+	int *arr1 = list1.subset(start1, end1).array();
+	for(int i = 0; i < 1 + end1 - start1; i++) {
+		cout << "At " << i << ": " << arr1[i] << endl;
+	}
+
+	delete[] arr1;
+}
+
+void example8() {
+	AccelGyro a1(1.2f, -13.f, 239.32f, 239234.2130f, 12.283f, -128.1f);
+	List<char> data1 = encode(a1);
+
+	AccelGyro rea1;
+	char *arr1 = data1.array();
+	decode(rea1, arr1, data1.size());
+
+	data1.clear();
+	delete[] arr1;
+
+	cout << "Transported as " << a1 << " and ended up as " << rea1 << endl;
+
+	Vector3 a2(1.2f, -13.f, 239.32f);
+	List<char> data2 = encode(a2);
+
+	Vector3 rea2;
+	char *arr2 = data2.array();
+	decode(rea2, arr2, data2.size());
+
+	data2.clear();
+	delete[] arr2;
+
+	cout << "Transported as " << a2 << " and ended up as " << rea2 << endl;
+
+	Quaternion a3(1.2f, -13.f, 239.32f, -12.12f);
+	List<char> data3 = encode(a3);
+
+	Quaternion rea3;
+	char *arr3 = data3.array();
+	decode(rea3, arr3, data3.size());
+
+	data3.clear();
+	delete[] arr3;
+
+	cout << "Transported as " << a3 << " and ended up as " << rea3 << endl;
 }
 
 */

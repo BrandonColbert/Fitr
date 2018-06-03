@@ -1,7 +1,7 @@
-#ifndef TRANSMIT_H
-#define TRANSMIT_H
+#ifndef FITR_TRANSMIT_H
+#define FITR_TRANSMIT_H
 
-#include "Angles.h"
+#include "Quaternion.h"
 #include "List.h"
 
 #define FITR_BR 9600
@@ -11,33 +11,21 @@ namespace Transmit {
     namespace Code {
         const char NONE = 0,
                    INT = 1,
-                   FLOAT = 2;
+                   FLOAT = 2,
+                   FINGER_1_F = 3,
+                   FINGER_2_F = 4,
+                   FINGER_3_F = 5,
+                   FINGER_4_F = 6,
+                   FINGER_5_F = 7,
+                   FINGER_1_R = 8,
+                   FINGER_2_R = 9,
+                   FINGER_3_R = 10,
+                   FINGER_4_R = 11,
+                   FINGER_5_R = 12;
     }
 
-    template<typename Number>
-    static int getDecimals(Number n) {
-        int p = 1, a = 0;
-
-        while((int)(n * p) != n * p) {
-            p *= 10;
-            a++;
-        }
-
-        return a;
-    }
-
-    static int getAccuracy(int decimals) {
-        int a = 1;
-
-        while(decimals > 0) {
-            a *= 10;
-            decimals--;
-        }
-
-        return a;
-    }
-
-    static List<char> encode(int info) {
+    //Transmit: Integer
+    static List<char> encodeInt(int info) {
         List<char> list;
 
         for(int i = 0; i < 4; i++) {
@@ -47,267 +35,89 @@ namespace Transmit {
         return list;
     }
 
-    static void decode(int &dest, char *data, int length) {
+    static void decodeInt(int &dest, char *data, int length) {
         for(int i = length - 1; i >= 0; i--) {
             dest = dest << 8 | (unsigned char)data[i];
         }
     }
 
-    static List<char> encode(float info) {
+    //Transmit: Float
+    static List<char> encodeFloat(float info) {
         List<char> list;
 
-        int decimals = getDecimals(info);
-        int representation = (int)(info * getAccuracy(decimals));
-
-        for(int i = 0; i < 5; i++) {
-            list.add(i == 0 ? (char)decimals : (char)(representation >> (i - 1) * 8));
+        if(info != info) {
+            info = 0;
         }
+
+        int whole = (int)info;
+        int fraction = (int)((double)(info - whole) * 10000.0);
+
+        list.addAll(encodeInt(whole));
+        list.addAll(encodeInt(fraction));
 
         return list;
     }
 
-    static void decode(float &dest, char *data, int length) {
-        int accuracy = getAccuracy((unsigned char)data[0]);
-        int info = 0;
+    static void decodeFloat(float &dest, char *data, int length) {
+        List<char> list;
 
-        for(int i = length - 1; i > 0; i--) {
-            info = info << 8 | (unsigned char)data[i];
+        for(int i = 0; i < length; i++) {
+            list.add(data[i]);
         }
 
-        dest = (float)info / accuracy;
+        int ss = length / 2;
+
+		char *s1 = list.subset(ss * 0, ss * 1 - 1).array();
+        char *s2 = list.subset(ss * 1, ss * 2 - 1).array();
+
+        int whole;
+        int fraction;
+
+        decodeInt(whole, s1, ss);
+        decodeInt(fraction, s2, ss);
+
+        delete[] s1;
+        delete[] s2;
+
+        dest = (float)((double)whole + (double)fraction / 10000.0);
+    }
+
+    //Transmit: Quaternion
+    static List<char> encodeQuaternion(Quaternion &info) {
+        List<char> list;
+
+        list.addAll(encodeFloat(info.x));
+        list.addAll(encodeFloat(info.y));
+        list.addAll(encodeFloat(info.z));
+        list.addAll(encodeFloat(info.w));
+
+        return list;
+    }
+
+    static void decodeQuaternion(Quaternion &dest, char *data, int length) {
+        List<char> list;
+
+        for(int i = 0; i < length; i++) {
+            list.add(data[i]);
+        }
+
+        int ss = length / 4;
+
+        char *s1 = list.subset(ss * 0, ss * 1 - 1).array();
+        char *s2 = list.subset(ss * 1, ss * 2 - 1).array();
+        char *s3 = list.subset(ss * 2, ss * 3 - 1).array();
+        char *s4 = list.subset(ss * 3, ss * 4 - 1).array();
+
+        decodeFloat(dest.x, s1, ss);
+        decodeFloat(dest.y, s2, ss);
+        decodeFloat(dest.z, s3, ss);
+        decodeFloat(dest.w, s4, ss);
+
+        delete[] s1;
+        delete[] s2;
+        delete[] s3;
+        delete[] s4;
     }
 }
 
 #endif
-
-/*
-    char* encode(float info) {
-        int decimals = getDecimals(info),
-            accuracy = getAccuracy(decimals),
-            numberSize = sizeof(Number),
-            bits = (int)(info * accuracy);
-
-        char *data = new char[numberSize + 1];
-
-        for(int i = 0; i < numberSize + 1; i++) {
-            data[i] = i == 0 ? (char)decimals : (char)(bits >> (i - 1) * 8);
-        }
-
-        return data;
-    }
-
-    template<typename Number>
-    void decodeNumber(Number &dest, char *data) {
-        int numberSize = sizeof(Number),
-            accuracy = getAccuracy((unsigned char)data[0]),
-            info = 0;
-
-        for(int i = numberSize; i > 0; i--) {
-            info = info << 8 | (unsigned char)data[i];
-        }
-
-        dest = (Number)info / accuracy;
-    }
-
-    char* encode(Vector3 &info) {
-        int size = sizeof(float) + 1;
-
-        char *data = new char[size * 3];
-
-        for(int i = 0; i < 3; i++) {
-            char *p = nullptr;
-
-            switch(i) {
-                case 0:
-                    p = encodeNumber(info.x);
-                    break;
-                case 1:
-                    p = encodeNumber(info.y);
-                    break;
-                case 2:
-                    p = encodeNumber(info.z);
-                    break;
-            }
-
-            for(int j = 0; j < size; j++) {
-                data[i * size + j] = p[j];
-            }
-        }
-
-        return data;
-    }
-
-    void decode(Vector3 &dest, char *data) {
-        const int size = sizeof(float) + 1;
-
-        for(int i = 0; i < 3; i++) {
-            float *p = nullptr;
-
-            switch(i) {
-                case 0:
-                    p = &dest.x;
-                    break;
-                case 1:
-                    p = &dest.y;
-                    break;
-                case 2:
-                    p = &dest.z;
-                    break;
-            }
-
-            char pd[size];
-
-            for(int j = 0; j < size; j++) {
-                pd[j] = data[i * size + j];
-            }
-
-            decodeNumber<float>(*p, pd);
-        }
-    }
-
-    char* encode(Quaternion &info) {
-        int size = sizeof(float) + 1;
-
-        char *data = new char[size * 4];
-
-        for(int i = 0; i < 4; i++) {
-            char *p = nullptr;
-
-            switch(i) {
-                case 0:
-                    p = encodeNumber(info.x);
-                    break;
-                case 1:
-                    p = encodeNumber(info.y);
-                    break;
-                case 2:
-                    p = encodeNumber(info.z);
-                    break;
-                case 3:
-                    p = encodeNumber(info.w);
-                    break;
-            }
-
-            for(int j = 0; j < size; j++) {
-                data[i * size + j] = p[j];
-            }
-        }
-
-        return data;
-    }
-
-    void decode(Quaternion &dest, char *data) {
-        const int size = sizeof(float) + 1;
-
-        for(int i = 0; i < 4; i++) {
-            float *p = nullptr;
-
-            switch(i) {
-                case 0:
-                    p = &dest.x;
-                    break;
-                case 1:
-                    p = &dest.y;
-                    break;
-                case 2:
-                    p = &dest.z;
-                    break;
-                case 3:
-                    p = &dest.w;
-                    break;
-            }
-
-            char pd[size];
-
-            for(int j = 0; j < size; j++) {
-                pd[j] = data[i * size + j];
-            }
-
-            decodeNumber<float>(*p, pd);
-        }
-    }
-
-    char* encode(AccelGyro &info) {
-        const int size = sizeof(float) + 1;
-
-        char *data = new char[size * 6];
-
-        for(int i = 0; i < 6; i++) {
-            char *p = nullptr;
-
-            switch(i) {
-                case 0:
-                    p = encodeNumber(info.ax);
-                    break;
-                case 1:
-                    p = encodeNumber(info.ay);
-                    break;
-                case 2:
-                    p = encodeNumber(info.az);
-                    break;
-                case 3:
-                    p = encodeNumber(info.gx);
-                    break;
-                case 4:
-                    p = encodeNumber(info.gy);
-                    break;
-                case 5:
-                    p = encodeNumber(info.gz);
-                    break;
-            }
-
-            for(int j = 0; j < size; j++) {
-                data[i * size + j] = p[j];
-            }
-        }
-
-        return data;
-    }
-
-    void decode(AccelGyro &dest, char *data) {
-        const int size = sizeof(float) + 1;
-
-        for(int i = 0; i < 4; i++) {
-            float *p = nullptr;
-
-            switch(i) {
-                case 0:
-                    p = &dest.ax;
-                    break;
-                case 1:
-                    p = &dest.ay;
-                    break;
-                case 2:
-                    p = &dest.az;
-                    break;
-                case 3:
-                    p = &dest.gx;
-                    break;
-                case 4:
-                    p = &dest.gy;
-                    break;
-                case 5:
-                    p = &dest.gz;
-                    break;
-            }
-
-            char pd[size];
-
-            for(int j = 0; j < size; j++) {
-                pd[j] = data[i * size + j];
-            }
-
-            decodeNumber<float>(*p, pd);
-        }
-    }
-
-    template<typename T, typename ...Ts>
-    char* encode(T &info, Ts &...extra) {
-        List<char*> data;
-
-        data.add(encode(info));
-        data.add(encode(extra...));
-
-        return data;
-    }
-    */

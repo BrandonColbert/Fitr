@@ -1,11 +1,12 @@
-#ifndef HAND_H
-#define HAND_H
+#ifndef FITR_HAND_H
+#define FITR_HAND_H
 
-#include "Angles.h"
+#include "Quaternion.h"
 
 struct Finger {
-    float flex;
-    Angles angles;
+    public:
+        float flex = 0.0f;
+        Quaternion rotation;
 };
 
 class Hand {
@@ -13,9 +14,11 @@ class Hand {
         Finger *fingers;
     public:
         int totalFingers;
-        Angles rotation;
+		Quaternion rotation;
 
+        Hand();
         Hand(int);
+        Hand(Hand&);
         ~Hand();
         Finger& operator[](int);
 };

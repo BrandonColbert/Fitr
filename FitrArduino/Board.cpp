@@ -36,6 +36,6 @@ void Board::removeComponent(const char *name) {
     }
 }
 
-List<Component*> Board::getComponents() {
+List<Component*>& Board::getComponents() {
     return components;
 }

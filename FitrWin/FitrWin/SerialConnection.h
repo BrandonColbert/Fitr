@@ -7,7 +7,7 @@
 
 class SerialConnection {
 	private:
-		bool _connected;
+		volatile bool _connected;
 		HANDLE handle;
 		COMSTAT status;
 		DWORD errors;
@@ -17,6 +17,7 @@ class SerialConnection {
 		void simpleRead();
 		void simpleRead(std::ostream&);
 		bool connected();
+		void disconnect();
 
 		template<typename T>
 		int read(T *buffer, unsigned int maxQueueSize) {
