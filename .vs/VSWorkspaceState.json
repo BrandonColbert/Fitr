@@ -1,8 +1,6 @@
 {
   "ExpandedNodes": [
     "",
-    "\\FitrArduino",
-    "\\FitrArduino\\Fitr",
     "\\FitrWin",
     "\\FitrWin\\FitrWin",
     "\\FitrWin\\FitrWin\\Debug",
@@ -11,5 +9,6 @@
     "\\FitrWin\\x64",
     "\\FitrWin\\x64\\Debug"
   ],
+  "SelectedNode": "\\FitrWin\\FitrWin\\FitrMemory.h",
   "PreviewInSolutionExplorer": true
 }

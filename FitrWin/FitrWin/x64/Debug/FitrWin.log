@@ -1,3 +1,5 @@
-﻿  FitrWin.cpp
-     Creating library C:\Users\Dash\Documents\GitHub\Hybrid\Fitr\FitrWin\x64\Debug\FitrWin.lib and object C:\Users\Dash\Documents\GitHub\Hybrid\Fitr\FitrWin\x64\Debug\FitrWin.exp
-  FitrWin.vcxproj -> C:\Users\Dash\Documents\GitHub\Hybrid\Fitr\FitrWin\x64\Debug\FitrWin.dll
+﻿  FitrManager.cpp
+  FitrWin.cpp
+  SerialHandler.cpp
+  Generating Code...
+  FitrWin.vcxproj -> C:\Users\Dash\Documents\GitHub\Hybrid\Fitr\FitrWin\x64\Debug\FitrWin.exe

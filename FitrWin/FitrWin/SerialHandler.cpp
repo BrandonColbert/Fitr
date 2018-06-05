@@ -17,39 +17,45 @@ void SerialHandler::handleWith(SerialConnection &serial, FitrManager &manager) {
 	int amount = -1;
 	List<char> data;
 
+	auto push = [&] {
+		char *dataArray = data.array();
+		manager.utilize(transmitCode, dataArray, data.size());
+		delete dataArray;
+
+		transmitCode = Code::NONE;
+		amount = -1;
+		data.clear();
+	};
+
 	while(serial.connected()) {
 		char buffer[1] = "";
 
 		if (serial.read(buffer, 1) > 0) {
-			if (ensure) {
+			if(ensure) {
 				if (transmitCode == Code::NONE) {
 					transmitCode = buffer[0];
-				}
-				else if (amount == -1) {
+				} else if (amount == -1) {
 					amount = buffer[0];
+
+					if(amount == 0) {
+						push();
+					}
 
 #ifdef DEBUG_FITR
 					println("Found code ", (int)transmitCode, " with size of ", amount, " bytes");
 #endif
-				}
-				else if (amount > 0) {
+				} else if (amount > 0) {
 					amount--;
 
 					data.add(buffer[0]);
 
-					if (amount == 0) {
+					if(amount == 0) {
 #ifdef DEBUG_FITR
-						for (int i = 0; i < data.size(); i++) {
+						for(int i = 0; i < data.size(); i++) {
 							println("\t-> ", (int)data[i]);
 						}
 #endif
-						char *dataArray = data.array();
-						manager.utilize(transmitCode, dataArray, data.size());
-						delete dataArray;
-
-						transmitCode = Code::NONE;
-						amount = -1;
-						data.clear();
+						push();
 					}
 				}
 			}

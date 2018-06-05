@@ -4,8 +4,12 @@
 #include "Quaternion.h"
 #include "List.h"
 
-#define FITR_BR 9600
+#define FITR_BR 115200
+//#define FITR_BR 9600
 #define TC_START "TC_START"
+
+#define FITR_FAST_INTS
+//#define FITR_PRECISE_FLOATS
 
 namespace Transmit {
     namespace Code {
@@ -21,7 +25,8 @@ namespace Transmit {
                    FINGER_2_R = 9,
                    FINGER_3_R = 10,
                    FINGER_4_R = 11,
-                   FINGER_5_R = 12;
+                   FINGER_5_R = 12,
+				   PALM_R = 13;
     }
 
     //Transmit: Integer
@@ -29,20 +34,39 @@ namespace Transmit {
         List<char> list;
 
         for(int i = 0; i < 4; i++) {
-            list.add(info >> i * 8);
+            char d = info >> i * 8;
+
+#ifdef FITR_FAST_INTS
+            if(d == 0) {
+                return list;
+            }
+#endif
+
+            list.add(d);
         }
 
         return list;
     }
 
     static void decodeInt(int &dest, char *data, int length) {
+#ifdef FITR_FAST_INTS
+        if(length == 0) {
+            dest = 0;
+        } else {
+            for(int i = 3; i >= 0; i--) {
+                dest = dest << 8 | (i > (length - 1) ? 0 : (unsigned char)data[i]);
+            }
+        }
+#else
         for(int i = length - 1; i >= 0; i--) {
             dest = dest << 8 | (unsigned char)data[i];
         }
+#endif
     }
 
     //Transmit: Float
     static List<char> encodeFloat(float info) {
+#ifdef FITR_PRECISE_FLOATS
         List<char> list;
 
         if(info != info) {
@@ -56,9 +80,13 @@ namespace Transmit {
         list.addAll(encodeInt(fraction));
 
         return list;
+#else
+        return encodeInt((int)((double)info * 100.0));
+#endif
     }
 
     static void decodeFloat(float &dest, char *data, int length) {
+#ifdef FITR_PRECISE_FLOATS
         List<char> list;
 
         for(int i = 0; i < length; i++) {
@@ -80,6 +108,11 @@ namespace Transmit {
         delete[] s2;
 
         dest = (float)((double)whole + (double)fraction / 10000.0);
+#else
+        int v;
+        decodeInt(v, data, length);
+        dest = (float)((double)v / 100.0);
+#endif
     }
 
     //Transmit: Quaternion

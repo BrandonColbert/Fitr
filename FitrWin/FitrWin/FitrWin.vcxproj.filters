@@ -59,7 +59,7 @@
     <ClInclude Include="..\..\FitrArduino\Fitr\Transmit.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="CSInterface.h">
+    <ClInclude Include="FitrMemory.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

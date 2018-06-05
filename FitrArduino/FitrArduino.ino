@@ -31,7 +31,7 @@ void setup() {
 }
 
 void loop() {
-	Quaternion exampleRotation(-2.213f, 1.2f, -3.4f, 5.932f);
+	Quaternion exampleRotation(0.0f, 0.0f, 0.0f, 1.0f);
 
 	transmitSend(Code::FINGER_1_F, encodeFloat(((FlexSensor*)&board.getComponent(0))->getFlex()));
 	transmitSend(Code::FINGER_1_R, encodeQuaternion(exampleRotation));
@@ -43,6 +43,7 @@ void loop() {
 	transmitSend(Code::FINGER_4_R, encodeQuaternion(exampleRotation));
 	transmitSend(Code::FINGER_5_F, encodeFloat(((FlexSensor*)&board.getComponent(4))->getFlex()));
 	transmitSend(Code::FINGER_5_R, encodeQuaternion(exampleRotation));
+	transmitSend(Code::PALM_R, encodeQuaternion(exampleRotation));
 }
 
 void printAll() {

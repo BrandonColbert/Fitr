@@ -1,17 +1,24 @@
 #include "SerialConnection.h"
 
 using namespace std;
+using namespace FitrPrint;
 
 SerialConnection::SerialConnection(string port, int baudRate, int waitTime) {
 	_connected = false;
+
+	pointOfConnect:
 	handle = CreateFile(port.c_str(), GENERIC_READ | GENERIC_WRITE, 0, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
 
 	if(handle == INVALID_HANDLE_VALUE) {
 		if(GetLastError() == ERROR_FILE_NOT_FOUND) {
-			cout << "Port " << port << "unavailable" << endl;
+			int waitTime = 3;
+			println("Port ", port, " unavailable, reattempting in ", waitTime, " seconds");
+			Sleep(waitTime * 1000);
+			goto pointOfConnect;
+		} else {
+			println("Unable to connect");
+			exit(1);
 		}
-
-		cout << "Unable to connect" << endl;
 	} else {
 		DCB serialParams = {0};
 
@@ -27,13 +34,13 @@ SerialConnection::SerialConnection(string port, int baudRate, int waitTime) {
 				PurgeComm(handle, PURGE_RXCLEAR | PURGE_TXCLEAR);
 				Sleep(waitTime);
 
-				cout << "Now connected!" << endl;
+				println("Now connected!");
 			}
 			else {
-				cout << "Unable to set serial parameters" << endl;
+				println("Unable to set serial parameters");
 			}
 		} else {
-			cout << "Unable to acquire serial parameters" << endl;
+			println("Unable to acquire serial parameters");
 		}
 	}
 

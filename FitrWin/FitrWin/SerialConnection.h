@@ -5,6 +5,8 @@
 #include <string>
 #include <iostream>
 
+#include "FitrPrint.h"
+
 class SerialConnection {
 	private:
 		volatile bool _connected;

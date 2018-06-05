@@ -338,29 +338,41 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 67fa0b6a9cc255c4f8bea31e9ba7b0fa, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  smoothTime: 0.01
+  palmRotation: {x: 0, y: 0, z: 0, w: 0}
   palm: {fileID: 170182750}
   thumb:
     connected: 1
+    flex: 0
+    rotation: {x: 0, y: 0, z: 0, w: 0}
     a: {fileID: 1095186086}
     b: {fileID: 842642409}
     c: {fileID: 0}
   index:
     connected: 1
+    flex: 0
+    rotation: {x: 0, y: 0, z: 0, w: 0}
     a: {fileID: 2067029614}
     b: {fileID: 1420900203}
     c: {fileID: 535614678}
   middle:
     connected: 1
+    flex: 0
+    rotation: {x: 0, y: 0, z: 0, w: 0}
     a: {fileID: 255622370}
     b: {fileID: 2115470754}
     c: {fileID: 1627532356}
   ring:
     connected: 1
+    flex: 0
+    rotation: {x: 0, y: 0, z: 0, w: 0}
     a: {fileID: 55303500}
     b: {fileID: 1874285784}
     c: {fileID: 1963683429}
   pinky:
     connected: 1
+    flex: 0
+    rotation: {x: 0, y: 0, z: 0, w: 0}
     a: {fileID: 1721426982}
     b: {fileID: 1064364616}
     c: {fileID: 1987381364}

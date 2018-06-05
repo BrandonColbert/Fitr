@@ -7,7 +7,7 @@
 namespace FitrPrint {
 	template<typename T>
 	void print(T t) {
-		cout << t;
+		std::cout << t;
 		//logFile << t;
 	}
 
@@ -16,6 +16,12 @@ namespace FitrPrint {
 		print(t);
 		print(ts...);
 	}
+
+	/*
+	void print() {
+		print("");
+	}
+	*/
 
 	template<typename T>
 	void println(T t) {
@@ -29,6 +35,12 @@ namespace FitrPrint {
 		print(ts...);
 		print("\n");
 	}
+
+	/*
+	void println() {
+		print("\n");
+	}
+	*/
 }
 
 #endif

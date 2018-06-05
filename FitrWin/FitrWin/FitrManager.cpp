@@ -7,65 +7,51 @@ using namespace Transmit;
 FitrManager::FitrManager(int argc, char *argv[]) : hand(new Hand(5)) {
 	portNumber = argc < 2 ? "4" : argv[1];
 	baudRate = argc < 3 ? FITR_BR : atoi(argv[2]);
-
-	thread([&](FitrManager &manager) {
-		std::stringstream port;
-		port << "\\\\.\\COM";
-		port << manager.portNumber;
-
-		println("Attempting to connect through \"", port.str(), "\" at a baud rate of ", manager.baudRate);
-
-		manager.serial = new SerialConnection(port.str(), manager.baudRate, 2000);
-		SerialHandler().handleWith(*manager.serial, manager);
-	}, std::ref(*this)).detach();
+	fitrMem = new FitrMemory(argc < 4 ? "FitrSharedMemory" : argv[3], hand->totalFingers);
 }
 
 FitrManager::~FitrManager() {
 	stop();
 	delete hand;
 	delete serial;
+	delete fitrMem;
 }
 
 Hand& FitrManager::getHand() {
 	return *hand;
 }
 
+void FitrManager::start() {
+	if(serial == nullptr) {
+		lastSyncTime = 0LL;
+
+		thread([&](FitrManager &manager) {
+			std::stringstream port;
+			port << "\\\\.\\COM";
+			port << manager.portNumber;
+
+			println("Attempting to connect through \"", port.str(), "\" at a baud rate of ", manager.baudRate);
+
+			manager.serial = new SerialConnection(port.str(), manager.baudRate, 2000);
+			SerialHandler().handleWith(*manager.serial, manager);
+		}, std::ref(*this)).detach();
+	}
+}
+
 void FitrManager::stop() {
 	serial->disconnect();
 }
 
-ostream& operator<<(ostream &stream, Quaternion &angles) {
-	return stream << "Quaternion(" << angles.x << ", " << angles.y << ", " << angles.z << ", " << angles.w << ")";
-}
-
 void FitrManager::utilize(char code, char *data, int bytes) {
 	auto fingerFlex = [&](int index) {
-		float v;
-		decodeFloat(v, data, bytes);
-		(*hand)[index].flex = v;
+		decodeFloat((*hand)[index].flex, data, bytes);
 	};
 
 	auto fingerRot = [&](int index) {
-		Quaternion rot;
-		decodeQuaternion(rot, data, bytes);
-		(*hand)[index].rotation = rot;
+		decodeQuaternion((*hand)[index].rotation, data, bytes);
 	};
 
 	switch(code) {
-		case Code::INT:
-			{
-				int v;
-				decodeInt(v, data, bytes);
-				println("Reconstructed ", v, " from ", data);
-			}
-			break;
-		case Code::FLOAT:
-			{
-				float v;
-				decodeFloat(v, data, bytes);
-				println("Reconstructed ", v, " from ", data);
-			}
-			break;
 		case Code::FINGER_1_F: fingerFlex(0); break;
 		case Code::FINGER_2_F: fingerFlex(1); break;
 		case Code::FINGER_3_F: fingerFlex(2); break;
@@ -76,33 +62,41 @@ void FitrManager::utilize(char code, char *data, int bytes) {
 		case Code::FINGER_3_R: fingerRot(2); break;
 		case Code::FINGER_4_R: fingerRot(3); break;
 		case Code::FINGER_5_R: fingerRot(4); break;
+		case Code::PALM_R:
+			decodeQuaternion(hand->rotation, data, bytes);
+			break;
 		default:
 			break;
 	}
 
-	auto showFlex = [&](int n) {
-		int max = 25;
+	if(code == Code::PALM_R) {
+		fitrMem->sync(*hand);
 
-		int size = n / 4 > max ? max : n / 4;
+		auto getTime = [&] {
+			return chrono::duration_cast<chrono::milliseconds>(chrono::high_resolution_clock::now().time_since_epoch()).count();
+		};
 
-		for (int i = 0; i < size; i++) {
-			print("-");
+		long long time = getTime();
+
+		if(lastSyncTime > 0) {
+			double csr = 1.0 / ((double)(time - lastSyncTime) / 1000.0);
+
+			if(csr > 0) {
+				if(syncRate < 0) {
+					syncRate = csr;
+				} else {
+					syncRate = (csr + syncRate) / 2.0;
+				}
+			}
 		}
 
-		for (int i = max + 10 - size; i >= 0; i--) {
-			print(" ");
+		if((int)syncRate < 0) {
+			syncRate = 0;
+			//println("Lagging, need to catch up!!!");
+		} else {
+			println("Sync Rate: ", (int)syncRate, "sps (syncs per second)");
 		}
-	};
 
-	//showFlex((int)(*hand)[0].flex);
-	//showFlex((int)(*hand)[1].flex);
-	//showFlex((int)(*hand)[2].flex);
-	//showFlex((int)(*hand)[3].flex);
-	//showFlex((int)(*hand)[4].flex);
-
-	//cout << endl;
-
-	//println("Flex(", (int)code, "): ", (*hand)[1].flex);
-
-	//println("Code: ", (int)code, " and thumb rotation is ", (*hand)[0].rotation);
+		lastSyncTime = getTime();
+	}
 }
