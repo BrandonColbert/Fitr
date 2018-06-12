@@ -75,8 +75,8 @@
     <ReferencePath>C:\Users\Dash\Documents\GitHub\Hybrid\Fitr\FitrArduino\Fitr;$(ReferencePath)</ReferencePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <SourcePath>C:\Users\Dash\Documents\GitHub\Hybrid\Fitr\FitrArduino\Fitr;$(SourcePath)</SourcePath>
-    <IncludePath>C:\Users\Dash\Documents\GitHub\Hybrid\Fitr\FitrArduino\Fitr;$(IncludePath)</IncludePath>
+    <SourcePath>H:\EXN D2\Projects\Hybrid\Fitr\FitrArduino\Fitr;$(SourcePath)</SourcePath>
+    <IncludePath>H:\EXN D2\Projects\Hybrid\Fitr\FitrArduino\Fitr;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>

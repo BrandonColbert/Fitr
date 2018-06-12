@@ -1,12 +1,12 @@
 #ifndef FITR_HAND_H
 #define FITR_HAND_H
 
-#include "Quaternion.h"
+#include "FitrQuaternion.h"
 
 struct Finger {
     public:
-        float flex = 0.0f;
-        Quaternion rotation;
+        int flex = 0;
+        FitrQuaternion rotation;
 };
 
 class Hand {
@@ -14,7 +14,7 @@ class Hand {
         Finger *fingers;
     public:
         int totalFingers;
-		Quaternion rotation;
+		FitrQuaternion rotation;
 
         Hand();
         Hand(int);

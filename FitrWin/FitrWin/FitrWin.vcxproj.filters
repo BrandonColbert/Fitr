@@ -44,13 +44,7 @@
     <ClInclude Include="FitrManager.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\FitrArduino\Fitr\Fitr.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\FitrArduino\Fitr\Hand.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\FitrArduino\Fitr\List.h">
+    <ClInclude Include="FitrMemory.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\..\FitrArduino\Fitr\Quaternion.h">
@@ -59,7 +53,13 @@
     <ClInclude Include="..\..\FitrArduino\Fitr\Transmit.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="FitrMemory.h">
+    <ClInclude Include="..\..\FitrArduino\Fitr\Fitr.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\FitrArduino\Fitr\Hand.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\FitrArduino\Fitr\List.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

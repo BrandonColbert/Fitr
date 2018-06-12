@@ -40,15 +40,15 @@ public class FitrMemory {
             };
 
             hand.palmRotation = nextQuaternion();
-            hand.thumb.flex = nextFloat();
+            hand.thumb.flex = 100f - nextFloat();
             hand.thumb.rotation = nextQuaternion();
-            hand.index.flex = nextFloat();
+            hand.index.flex = 100f - nextFloat();
             hand.index.rotation = nextQuaternion();
-            hand.middle.flex = nextFloat();
+            hand.middle.flex = 100f - nextFloat();
             hand.middle.rotation = nextQuaternion();
-            hand.ring.flex = nextFloat();
+            hand.ring.flex = 100f - nextFloat();
             hand.ring.rotation = nextQuaternion();
-            hand.pinky.flex = nextFloat();
+            hand.pinky.flex = 100f - nextFloat();
             hand.pinky.rotation = nextQuaternion();
          } catch(Exception e) {
             Debug.Log(e.GetType().Name + ": " + e.Message);

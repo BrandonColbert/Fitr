@@ -50,7 +50,7 @@ class FitrMemory {
 				index++;
 			};
 
-			auto cq = [&](Quaternion q) {
+			auto cq = [&](FitrQuaternion q) {
 				cf(q.x);
 				cf(q.y);
 				cf(q.z);
@@ -60,7 +60,7 @@ class FitrMemory {
 			cq(hand.rotation);
 
 			for(int i = 0; i < hand.totalFingers; i++) {
-				cf(hand[i].flex);
+				cf((float)hand[i].flex);
 				cq(hand[i].rotation);
 			}
 

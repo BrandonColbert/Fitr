@@ -55,6 +55,8 @@
      <Compile Include="Assets\Scripts\FitrHand.cs" />
      <Compile Include="Assets\Scripts\FitrMemory.cs" />
      <Compile Include="Assets\Scripts\InfinityGauntletUI.cs" />
+     <Compile Include="Assets\Scripts\PlugValue.cs" />
+     <Compile Include="Assets\Scripts\SwapAxis.cs" />
  <Reference Include="UnityEngine.UI">
  <HintPath>E:/Program Files/Unity/Editor/Data/UnityExtensions/Unity/GUISystem/UnityEngine.UI.dll</HintPath>
  </Reference>

@@ -1,117 +1,190 @@
-#include "BoardModules.h"
-
 #include "Fitr/Fitr.h"
+#include "FitrPrint.h"
+
+#include "MPU6050_6Axis_MotionApps20.h"
+#include "I2Cdev.h"
+
+#if I2CDEV_IMPLEMENTATION == I2CDEV_ARDUINO_WIRE
+    #include "Wire.h"
+#endif
+
+//#define FITR_DEBUG
 
 using namespace Transmit;
+using namespace FitrPrint;
 
-Board board;
+//Pins
+int	pinFlexSensors = 1, //analog
+	pinRegisterShift = 5, //digital
+	pinRegisterStorage = 6, //digital
+	pinSerialData = 7, //digital
+	pinMPU1 = 8, //digital
+	pinMPU2 = 9, //digital
+	pinMPU3 = 10, //digital
+	pinMPU4 = 11, //digital
+	pinMPU5 = 12, //digital
+	pinMPU6 = 13; //digital
+//Constants
+const int flexSensorResistor = 2000,
+		  flexSensorVolts = 5,
+		  fitrFingers = 5;
+//Other
+int lowestFlexValue, highestFlexValue;
+//Data
+int flexions[fitrFingers];
+FitrQuaternion rotations[1 + fitrFingers];
+//MPUs
+Quaternion mpuRotation;
+volatile bool mpuInterrupt = false;
+bool dmpReady = false;
+uint8_t mpuIntStatus, devStatus, fifoBuffer[64];
+uint16_t packetSize, fifoCount;
+MPU6050 mpu;
 
 template<typename T>
 void transmitSend(char code, List<char> &&data) {
 	char *d = data.array();
-
+#ifndef FITR_DEBUG
 	Serial.write(code);
 	Serial.write(data.size());
 	Serial.write(d, data.size());
-
+#endif
 	delete d;
 	data.clear();
 }
 
+void setRegistry(int state, int registry) {
+	digitalWrite(pinSerialData, state);
+	digitalWrite(pinRegisterStorage, LOW);
+	shiftOut(pinSerialData, pinRegisterShift, MSBFIRST, 0x01 << registry);
+	digitalWrite(pinRegisterStorage, HIGH);
+}
+
+void onDataReady() {
+	mpuInterrupt = true;
+}
+
 void setup() {
 	Serial.begin(FITR_BR);
-	//board.addComponent("IMU Palm", new MPU());
-	board.addComponent("ThumbFlex", new FlexSensor(5, 5, 2000));
-	board.addComponent("IndexFlex", new FlexSensor(4, 5, 2000));
-	board.addComponent("MiddleFlex", new FlexSensor(3, 5, 2000));
-	board.addComponent("RingFlex", new FlexSensor(2, 5, 2000));
-	board.addComponent("PinkyFlex", new FlexSensor(1, 5, 2000));
+
+	pinMode(pinRegisterStorage, OUTPUT);
+	pinMode(pinRegisterShift, OUTPUT);
+	pinMode(pinSerialData, OUTPUT);
+
+	pinMode(pinMPU1, OUTPUT);
+	pinMode(pinMPU2, OUTPUT);
+	pinMode(pinMPU3, OUTPUT);
+	pinMode(pinMPU4, OUTPUT);
+	pinMode(pinMPU5, OUTPUT);
+	pinMode(pinMPU6, OUTPUT);
+
+	#if I2CDEV_IMPLEMENTATION == I2CDEV_ARDUINO_WIRE
+		Wire.begin();
+		TWBR = 24;
+	#elif I2CDEV_IMPLEMENTATION == I2CDEV_BUILTIN_FASTWIRE
+		Fastwire::setup(400, true);
+	#endif
 
 	while(!(Serial.available() > 0));
+
+	//while(!Serial);
+	mpu.initialize();
+
+	if(mpu.testConnection()) {
+		//println("MPUs connected");
+	} else {
+		//println("MPUs can't connect");
+	}
+
+	//while(Serial.available() && Serial.read());
+
+	devStatus = mpu.dmpInitialize();
+
+	mpu.setXGyroOffset(220);
+	mpu.setYGyroOffset(76);
+	mpu.setZGyroOffset(-85);
+	mpu.setZAccelOffset(1788);
+
+	if(devStatus == 0) {
+		mpu.setDMPEnabled(true);
+		attachInterrupt(0, onDataReady, RISING);
+		mpuIntStatus = mpu.getIntStatus();
+		dmpReady = true;
+		packetSize = mpu.dmpGetFIFOPacketSize();
+	} else {
+		println("DMP Initialization failed (code ", devStatus, ")");
+	}
 }
 
 void loop() {
-	Quaternion exampleRotation(0.0f, 0.0f, 0.0f, 1.0f);
+	for(int i = pinMPU1; i <= pinMPU6; i++) {
+		if(!(i == pinMPU1 || i == pinMPU3)) continue; //TODO: These are the ones I'm using atm
 
-	transmitSend(Code::FINGER_1_F, encodeFloat(((FlexSensor*)&board.getComponent(0))->getFlex()));
-	transmitSend(Code::FINGER_1_R, encodeQuaternion(exampleRotation));
-	transmitSend(Code::FINGER_2_F, encodeFloat(((FlexSensor*)&board.getComponent(1))->getFlex()));
-	transmitSend(Code::FINGER_2_R, encodeQuaternion(exampleRotation));
-	transmitSend(Code::FINGER_3_F, encodeFloat(((FlexSensor*)&board.getComponent(2))->getFlex()));
-	transmitSend(Code::FINGER_3_R, encodeQuaternion(exampleRotation));
-	transmitSend(Code::FINGER_4_F, encodeFloat(((FlexSensor*)&board.getComponent(3))->getFlex()));
-	transmitSend(Code::FINGER_4_R, encodeQuaternion(exampleRotation));
-	transmitSend(Code::FINGER_5_F, encodeFloat(((FlexSensor*)&board.getComponent(4))->getFlex()));
-	transmitSend(Code::FINGER_5_R, encodeQuaternion(exampleRotation));
-	transmitSend(Code::PALM_R, encodeQuaternion(exampleRotation));
-}
-
-void printAll() {
-	bool first = true;
-
-	for(int i = 0; i < board.getComponents().size(); i++) {
-
-		Component *component = board.getComponents()[i];
-
-		if(!first) {
-			Serial.print(" | ");
+		for(int j = pinMPU1; j <= pinMPU6; j++) {
+			digitalWrite(j, j == i ? LOW : HIGH);
 		}
 
-		Serial.print(component->getName());
-		Serial.print("[");
+		if(!dmpReady) return;
+		while(!mpuInterrupt && fifoCount < packetSize) break;
+		mpuInterrupt = false;
+		mpuIntStatus = mpu.getIntStatus();
+		fifoCount = mpu.getFIFOCount();
 
-		if(strstr(component->getName(), "Flex") != NULL) {
-			FlexSensor *flexSensor = (FlexSensor*)component;
-			Serial.print(flexSensor->getFlex());
-			Serial.print("%");
-		} else if(strstr(component->getName(), "IMU") != NULL) {
-			MPU *mpu = (MPU*)component;
-			int *values = mpu->getRaw();
+		if(fifoCount == 1024) {
+			mpu.resetFIFO();
+		} else {
+			while(fifoCount < packetSize) fifoCount = mpu.getFIFOCount();
+			mpu.getFIFOBytes(fifoBuffer, packetSize);
+			fifoCount -= packetSize;
+			mpu.dmpGetQuaternion(&mpuRotation, fifoBuffer);
 
-			Serial.print(values[0]);
-			for(int i = 1; i < 6; i++) {
-				Serial.print(", ");
-				Serial.print(values[i]);
-			}
+            // x  y  z  w ->  a  b  c  d at i0
+            // w  x  z  y <-  d  a  c  b at i19 from last
+            //-y  z  x -w <- -d  c  b  -a at i23 from last
+			rotations[i - pinMPU1] = FitrQuaternion(-mpuRotation.y, mpuRotation.z, mpuRotation.x, -mpuRotation.w); //FitrQuaternion(mpuRotation.x, mpuRotation.y, mpuRotation.z, mpuRotation.w);
+
+			//println("quat\t", mpuRotation.w, "\t", mpuRotation.x, "\t", mpuRotation.y, "\t", mpuRotation.z);
+		}
+	}
+/*
+	for(int i = pinMPU1; i <= pinMPU1; i++) {
+		print("Angles(", i - pinMPU1, ")\t", rotations[i - pinMPU1].w, "\t", rotations[i - pinMPU1].x, "\t", rotations[i - pinMPU1].y, "\t", rotations[i - pinMPU1].z, "\t\t");
+	}
+	println("\n------------------------------------------------------------------------------------------------------------------------------------------------------------");
+*/
+	//print("Flex: ");
+	for(int i = 0; i < fitrFingers; i++) {
+		setRegistry(HIGH, i + 1);
+		int flex = analogRead(pinFlexSensors);
+
+		float maxTransition = 1.2f;
+
+		if(lowestFlexValue == 0 && highestFlexValue == 0) {
+			//lowestFlexValue = highestFlexValue = flex;
+			lowestFlexValue = 10;
+			highestFlexValue = 80;
+		} else if(flex < lowestFlexValue) {
+			flex = lowestFlexValue;
+			//lowestFlexValue = flex;
+		} else if(flex > highestFlexValue) {
+			flex = highestFlexValue;
+			//highestFlexValue = flex;
 		}
 
-		Serial.print("]");
-		first = false;
+		flexions[i] = (int)((float)(flex - lowestFlexValue) / (float)(highestFlexValue - lowestFlexValue) * 100.0f);
+		//print(flexions[i], ", ");
 	}
+	//println("");
 
-	Serial.println();
-}
-
-int lastFlex = 12345;
-
-void printDetailed(FlexSensor *flexSensor) {
-	int currentFlex = flexSensor->getFlex();
-
-	if(currentFlex != lastFlex) {
-		Serial.print(flexSensor->getName());
-		Serial.print(": ");
-		Serial.print(currentFlex);
-		Serial.print("%");
-		Serial.print(" (delta of ");
-		Serial.print(-(currentFlex - lastFlex));
-		Serial.print(") at ");
-		Serial.print(-flexSensor->fr);
-		Serial.print(" with low of ");
-		Serial.print(-flexSensor->lowestFR);
-		Serial.print(" and high of ");
-		Serial.print(-flexSensor->highestFR);
-		Serial.println();
-
-		lastFlex = currentFlex;
-	}
-}
-
-void printGraph(FlexSensor *flexSensor) {
-	Serial.print(flexSensor->getName());
-	Serial.print(": ");
-	int bars = flexSensor->getFlex();
-	for(int i = 0; i < bars; i++) {
-		Serial.print("-");
-	}
-	Serial.println("");
+	transmitSend(Code::FINGER_1_F, encodeInt(flexions[0]));
+	transmitSend(Code::FINGER_1_R, encodeQuaternion(rotations[1]));
+	transmitSend(Code::FINGER_2_F, encodeInt(flexions[1]));
+	transmitSend(Code::FINGER_2_R, encodeQuaternion(rotations[2]));
+	transmitSend(Code::FINGER_3_F, encodeInt(flexions[2]));
+	transmitSend(Code::FINGER_3_R, encodeQuaternion(rotations[3]));
+	transmitSend(Code::FINGER_4_F, encodeInt(flexions[3]));
+	transmitSend(Code::FINGER_4_R, encodeQuaternion(rotations[4]));
+	transmitSend(Code::FINGER_5_F, encodeInt(flexions[4]));
+	transmitSend(Code::FINGER_5_R, encodeQuaternion(rotations[5]));
+	transmitSend(Code::PALM_R, encodeQuaternion(rotations[0]));
 }

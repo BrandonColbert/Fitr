@@ -1,14 +1,14 @@
 #ifndef FITR_TRANSMIT_H
 #define FITR_TRANSMIT_H
 
-#include "Quaternion.h"
+#include "FitrQuaternion.h"
 #include "List.h"
 
 #define FITR_BR 115200
 //#define FITR_BR 9600
 #define TC_START "TC_START"
 
-#define FITR_FAST_INTS
+//#define FITR_FAST_INTS
 //#define FITR_PRECISE_FLOATS
 
 namespace Transmit {
@@ -26,7 +26,7 @@ namespace Transmit {
                    FINGER_3_R = 10,
                    FINGER_4_R = 11,
                    FINGER_5_R = 12,
-				   PALM_R = 13;
+				           PALM_R = 13;
     }
 
     //Transmit: Integer
@@ -116,7 +116,7 @@ namespace Transmit {
     }
 
     //Transmit: Quaternion
-    static List<char> encodeQuaternion(Quaternion &info) {
+    static List<char> encodeQuaternion(FitrQuaternion &info) {
         List<char> list;
 
         list.addAll(encodeFloat(info.x));
@@ -127,7 +127,7 @@ namespace Transmit {
         return list;
     }
 
-    static void decodeQuaternion(Quaternion &dest, char *data, int length) {
+    static void decodeQuaternion(FitrQuaternion &dest, char *data, int length) {
         List<char> list;
 
         for(int i = 0; i < length; i++) {

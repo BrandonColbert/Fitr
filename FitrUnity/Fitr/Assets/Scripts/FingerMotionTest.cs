@@ -17,7 +17,7 @@ public class FingerMotionTest : MonoBehaviour {
 
 	void FixedUpdate() {
 		for(int i = 0; i < testers.Length; i++) {
-			FingerMotion fm = testers[i];
+			//FingerMotion fm = testers[i];
 /*
 			FitrHand.Finger[] fingers = hand.GetFingers();
 			if(0 <= fm.fingerNumber && fm.fingerNumber < fingers.Length) {
