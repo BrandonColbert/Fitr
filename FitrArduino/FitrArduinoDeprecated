@@ -1,0 +1,195 @@
+#include "Fitr/Fitr.h"
+#include "FitrPrint.h"
+
+#include "MPU6050_6Axis_MotionApps20.h"
+#include "I2Cdev.h"
+
+#if I2CDEV_IMPLEMENTATION == I2CDEV_ARDUINO_WIRE
+    #include "Wire.h"
+#endif
+
+//#define FITR_DEBUG
+
+using namespace Transmit;
+using namespace FitrPrint;
+
+//Pins
+int	pinFlexSensors = 1, //analog
+	pinRegisterShift = 8, //digital
+	pinRegisterStorage = 9, //digital
+	pinSerialData = 10, //digital
+	pinMPU1 = 2, //digital
+	pinMPU2 = 3, //digital
+	pinMPU3 = 4, //digital
+	pinMPU4 = 5, //digital
+	pinMPU5 = 6, //digital
+	pinMPU6 = 7; //digital
+//Constants
+const int flexSensorResistor = 2000,
+		  flexSensorVolts = 5,
+		  fitrFingers = 5;
+//Other
+int lowestFlexValue, highestFlexValue;
+//Data
+int flexions[fitrFingers];
+FitrQuaternion rotations[1 + fitrFingers];
+//MPUs
+Quaternion mpuRotation;
+volatile bool mpuInterrupt = false;
+bool dmpReady = false;
+uint8_t mpuIntStatus, devStatus, fifoBuffer[64];
+uint16_t packetSize, fifoCount;
+MPU6050 mpu;
+
+template<typename T>
+void transmitSend(char code, List<char> &&data) {
+	char *d = data.array();
+#ifndef FITR_DEBUG
+	Serial.write(code);
+	Serial.write(data.size());
+	Serial.write(d, data.size());
+#endif
+	delete d;
+	data.clear();
+}
+
+void setRegistry(int state, int registry) {
+	digitalWrite(pinSerialData, state);
+	digitalWrite(pinRegisterStorage, LOW);
+	shiftOut(pinSerialData, pinRegisterShift, MSBFIRST, 0x01 << registry);
+	digitalWrite(pinRegisterStorage, HIGH);
+}
+
+void onDataReady() {
+	mpuInterrupt = true;
+}
+
+void setup() {
+	Serial.begin(FITR_BR);
+
+	pinMode(pinRegisterStorage, OUTPUT);
+	pinMode(pinRegisterShift, OUTPUT);
+	pinMode(pinSerialData, OUTPUT);
+
+	pinMode(pinMPU1, OUTPUT);
+	pinMode(pinMPU2, OUTPUT);
+	pinMode(pinMPU3, OUTPUT);
+	pinMode(pinMPU4, OUTPUT);
+	pinMode(pinMPU5, OUTPUT);
+	pinMode(pinMPU6, OUTPUT);
+
+	#if I2CDEV_IMPLEMENTATION == I2CDEV_ARDUINO_WIRE
+		Wire.begin();
+		TWBR = 24;
+	#elif I2CDEV_IMPLEMENTATION == I2CDEV_BUILTIN_FASTWIRE
+		Fastwire::setup(400, true);
+	#endif
+
+	while(!(Serial.available() > 0));
+
+    for(int i = pinMPU1; i <= pinMPU6; i++) {
+        digitalWrite(i, LOW);
+    }
+
+    //println("Initializing MPUs");
+	mpu.initialize();
+
+	if(mpu.testConnection()) {
+		//println("MPUs connected");
+	} else {
+		//println("MPUs can't connect");
+	}
+
+	devStatus = mpu.dmpInitialize();
+
+	mpu.setXGyroOffset(220);
+	mpu.setYGyroOffset(76);
+	mpu.setZGyroOffset(-85);
+	mpu.setZAccelOffset(1788);
+
+	if(devStatus == 0) {
+		mpu.setDMPEnabled(true);
+		attachInterrupt(0, onDataReady, RISING);
+		mpuIntStatus = mpu.getIntStatus();
+		dmpReady = true;
+		packetSize = mpu.dmpGetFIFOPacketSize();
+	} else {
+		//println("DMP Initialization failed (code ", devStatus, ")");
+	}
+}
+
+void loop() {
+	for(int i = pinMPU1; i <= pinMPU6; i++) {
+
+		if(i == pinMPU6) continue; //TODO: These are the ones I'm not using atm
+
+		for(int j = pinMPU1; j <= pinMPU6; j++) {
+			digitalWrite(j, j == i ? LOW : HIGH);
+		}
+
+		if(!dmpReady) return;
+		while(!mpuInterrupt && fifoCount < packetSize) break;
+
+		mpuInterrupt = false;
+		mpuIntStatus = mpu.getIntStatus();
+		fifoCount = mpu.getFIFOCount();
+
+		if(fifoCount == 1024) {
+			mpu.resetFIFO();
+		} else {
+			while(fifoCount < packetSize) fifoCount = mpu.getFIFOCount();
+
+			mpu.getFIFOBytes(fifoBuffer, packetSize);
+			fifoCount -= packetSize;
+			mpu.dmpGetQuaternion(&mpuRotation, fifoBuffer);
+            // x  y  z  w ->  a  b  c  d at i0
+            // w  x  z  y <-  d  a  c  b at i19 from last
+            //-y  z  x -w <- -d  c  b  -a at i23 from last
+			rotations[(i == pinMPU1 ? 0 : 1) + i - pinMPU1/*i - pinMPU1*/] = FitrQuaternion(-mpuRotation.y, mpuRotation.z, mpuRotation.x, -mpuRotation.w); //FitrQuaternion(mpuRotation.x, mpuRotation.y, mpuRotation.z, mpuRotation.w);
+
+			//println("quat\t", mpuRotation.w, "\t", mpuRotation.x, "\t", mpuRotation.y, "\t", mpuRotation.z);
+		}
+	}
+/*
+	for(int i = pinMPU1; i <= pinMPU5; i++) {
+		print("Angles(", i - pinMPU1, ")\t", rotations[i - pinMPU1].w, "\t", rotations[i - pinMPU1].x, "\t", rotations[i - pinMPU1].y, "\t", rotations[i - pinMPU1].z, "\t\t");
+	}
+	println("\n------------------------------------------------------------------------------------------------------------------------------------------------------------");
+*/
+
+	//print("Flex: ");
+	for(int i = 0; i < 4/*fitrFingers*/; i++) {
+		setRegistry(HIGH, i + 1);
+		int flex = analogRead(pinFlexSensors);
+
+		float maxTransition = 1.2f;
+
+		if(lowestFlexValue == 0 && highestFlexValue == 0) {
+			//lowestFlexValue = highestFlexValue = flex;
+			lowestFlexValue = 10;
+			highestFlexValue = 80;
+		} else if(flex < lowestFlexValue) {
+			flex = lowestFlexValue;
+			//lowestFlexValue = flex;
+		} else if(flex > highestFlexValue) {
+			flex = highestFlexValue;
+			//highestFlexValue = flex;
+		}
+
+		flexions[1 + i] = (int)((float)(flex - lowestFlexValue) / (float)(highestFlexValue - lowestFlexValue) * 100.0f);
+		//print(flexions[i], ", ");
+	}
+	//println("");
+
+	transmitSend(Code::FINGER_1_F, encodeInt(flexions[0]));
+	transmitSend(Code::FINGER_1_R, encodeQuaternion(rotations[1]));
+	transmitSend(Code::FINGER_2_F, encodeInt(flexions[1]));
+	transmitSend(Code::FINGER_2_R, encodeQuaternion(rotations[2]));
+	transmitSend(Code::FINGER_3_F, encodeInt(flexions[2]));
+	transmitSend(Code::FINGER_3_R, encodeQuaternion(rotations[3]));
+	transmitSend(Code::FINGER_4_F, encodeInt(flexions[3]));
+	transmitSend(Code::FINGER_4_R, encodeQuaternion(rotations[4]));
+	transmitSend(Code::FINGER_5_F, encodeInt(flexions[4]));
+	transmitSend(Code::FINGER_5_R, encodeQuaternion(rotations[5]));
+	transmitSend(Code::PALM_R, encodeQuaternion(rotations[0]));
+}

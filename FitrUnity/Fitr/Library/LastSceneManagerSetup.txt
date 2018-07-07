@@ -1,4 +1,4 @@
 sceneSetups:
-- path: Assets/Scenes/FitrHandTest.unity
+- path: Assets/Scenes/InfinityShowcase.unity
   isLoaded: 1
   isActive: 1

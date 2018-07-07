@@ -85,7 +85,7 @@ public class FitrHand : MonoBehaviour {
 		palm.transform.localRotation = new Quaternion(-xOut.value, yOut.value, zOut.value, -wOut.value);
 */
 
-		palm.transform.localRotation = palmRotation;
+		if(palm) palm.transform.localRotation = palmRotation;
 		MoveFinger(ref thumb);
 		MoveFinger(ref index);
 		MoveFinger(ref middle);

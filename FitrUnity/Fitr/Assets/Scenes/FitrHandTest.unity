@@ -1725,7 +1725,7 @@ MonoBehaviour:
   wOut: {fileID: 606823318}
   smoothTime: 0.01
   palmRotation: {x: 0, y: 0, z: 0, w: 0}
-  palm: {fileID: 1552675051}
+  palm: {fileID: 0}
   thumb:
     connected: 1
     flex: 0

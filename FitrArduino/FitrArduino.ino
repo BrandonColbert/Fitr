@@ -3,37 +3,25 @@
 
 #include "MPU6050_6Axis_MotionApps20.h"
 #include "I2Cdev.h"
-
-#if I2CDEV_IMPLEMENTATION == I2CDEV_ARDUINO_WIRE
-    #include "Wire.h"
-#endif
+#include "Wire.h"
 
 //#define FITR_DEBUG
 
 using namespace Transmit;
 using namespace FitrPrint;
 
-//Pins
-int	pinFlexSensors = 1, //analog
-	pinRegisterShift = 5, //digital
-	pinRegisterStorage = 6, //digital
-	pinSerialData = 7, //digital
-	pinMPU1 = 8, //digital
-	pinMPU2 = 9, //digital
-	pinMPU3 = 10, //digital
-	pinMPU4 = 11, //digital
-	pinMPU5 = 12, //digital
-	pinMPU6 = 13; //digital
-//Constants
-const int flexSensorResistor = 2000,
-		  flexSensorVolts = 5,
-		  fitrFingers = 5;
-//Other
-int lowestFlexValue, highestFlexValue;
-//Data
-int flexions[fitrFingers];
-FitrQuaternion rotations[1 + fitrFingers];
-//MPUs
+const int pins_fs_amount = 5;
+const int pins_fs[] = {7, 6, 3, 2, 1};
+const int pins_mpu_amount = 6;
+const int pins_mpu[] = {2, 3, 4, 5, 6, 7};
+const int pin_i2c_clock = 5;
+const int pin_i2c_data = 4;
+
+int flexionLows[pins_fs_amount];
+int flexionHighs[pins_fs_amount];
+int flexions[pins_fs_amount];
+FitrQuaternion rotations[1 + pins_fs_amount];
+
 Quaternion mpuRotation;
 volatile bool mpuInterrupt = false;
 bool dmpReady = false;
@@ -44,20 +32,15 @@ MPU6050 mpu;
 template<typename T>
 void transmitSend(char code, List<char> &&data) {
 	char *d = data.array();
-#ifndef FITR_DEBUG
-	Serial.write(code);
-	Serial.write(data.size());
-	Serial.write(d, data.size());
-#endif
+
+    #ifndef FITR_DEBUG
+    	Serial.write(code);
+    	Serial.write(data.size());
+    	Serial.write(d, data.size());
+    #endif
+
 	delete d;
 	data.clear();
-}
-
-void setRegistry(int state, int registry) {
-	digitalWrite(pinSerialData, state);
-	digitalWrite(pinRegisterStorage, LOW);
-	shiftOut(pinSerialData, pinRegisterShift, MSBFIRST, 0x01 << registry);
-	digitalWrite(pinRegisterStorage, HIGH);
 }
 
 void onDataReady() {
@@ -67,18 +50,13 @@ void onDataReady() {
 void setup() {
 	Serial.begin(FITR_BR);
 
-	pinMode(pinRegisterStorage, OUTPUT);
-	pinMode(pinRegisterShift, OUTPUT);
-	pinMode(pinSerialData, OUTPUT);
+    for(int i = 0, pin = 0; i < pins_mpu_amount; i++) {
+        pin = pins_mpu[i];
+        pinMode(pin, OUTPUT);
+        digitalWrite(pin, LOW);
+    }
 
-	pinMode(pinMPU1, OUTPUT);
-	pinMode(pinMPU2, OUTPUT);
-	pinMode(pinMPU3, OUTPUT);
-	pinMode(pinMPU4, OUTPUT);
-	pinMode(pinMPU5, OUTPUT);
-	pinMode(pinMPU6, OUTPUT);
-
-	#if I2CDEV_IMPLEMENTATION == I2CDEV_ARDUINO_WIRE
+    #if I2CDEV_IMPLEMENTATION == I2CDEV_ARDUINO_WIRE
 		Wire.begin();
 		TWBR = 24;
 	#elif I2CDEV_IMPLEMENTATION == I2CDEV_BUILTIN_FASTWIRE
@@ -87,16 +65,9 @@ void setup() {
 
 	while(!(Serial.available() > 0));
 
-	//while(!Serial);
+    //println("Initializing MPUs");
 	mpu.initialize();
-
-	if(mpu.testConnection()) {
-		//println("MPUs connected");
-	} else {
-		//println("MPUs can't connect");
-	}
-
-	//while(Serial.available() && Serial.read());
+    mpu.testConnection();//println(mpu.testConnection() ? "MPUs connected" : "MPUs can't connect");
 
 	devStatus = mpu.dmpInitialize();
 
@@ -112,20 +83,18 @@ void setup() {
 		dmpReady = true;
 		packetSize = mpu.dmpGetFIFOPacketSize();
 	} else {
-		println("DMP Initialization failed (code ", devStatus, ")");
+		//println("DMP Initialization failed (code ", devStatus, ")");
 	}
 }
 
 void loop() {
-	for(int i = pinMPU1; i <= pinMPU6; i++) {
-		if(!(i == pinMPU1 || i == pinMPU3)) continue; //TODO: These are the ones I'm using atm
+    for(int i = 0; i < pins_mpu_amount; i++) {
+        int pin = pins_mpu[i];
+        for(int j = 0; j < pins_mpu_amount; j++) digitalWrite(pins_mpu[j], j == i ? LOW : HIGH);
 
-		for(int j = pinMPU1; j <= pinMPU6; j++) {
-			digitalWrite(j, j == i ? LOW : HIGH);
-		}
-
-		if(!dmpReady) return;
+        if(!dmpReady) return;
 		while(!mpuInterrupt && fifoCount < packetSize) break;
+
 		mpuInterrupt = false;
 		mpuIntStatus = mpu.getIntStatus();
 		fifoCount = mpu.getFIFOCount();
@@ -137,42 +106,33 @@ void loop() {
 			mpu.getFIFOBytes(fifoBuffer, packetSize);
 			fifoCount -= packetSize;
 			mpu.dmpGetQuaternion(&mpuRotation, fifoBuffer);
-
             // x  y  z  w ->  a  b  c  d at i0
             // w  x  z  y <-  d  a  c  b at i19 from last
             //-y  z  x -w <- -d  c  b  -a at i23 from last
-			rotations[i - pinMPU1] = FitrQuaternion(-mpuRotation.y, mpuRotation.z, mpuRotation.x, -mpuRotation.w); //FitrQuaternion(mpuRotation.x, mpuRotation.y, mpuRotation.z, mpuRotation.w);
 
+			rotations[i] = FitrQuaternion(-mpuRotation.y, mpuRotation.z, mpuRotation.x, -mpuRotation.w); //FitrQuaternion(mpuRotation.x, mpuRotation.y, mpuRotation.z, mpuRotation.w);
 			//println("quat\t", mpuRotation.w, "\t", mpuRotation.x, "\t", mpuRotation.y, "\t", mpuRotation.z);
 		}
-	}
+    }
 /*
-	for(int i = pinMPU1; i <= pinMPU1; i++) {
-		print("Angles(", i - pinMPU1, ")\t", rotations[i - pinMPU1].w, "\t", rotations[i - pinMPU1].x, "\t", rotations[i - pinMPU1].y, "\t", rotations[i - pinMPU1].z, "\t\t");
+	for(int i = 0; i < pins_mpu_amount; i++) {
+		print(i, "->", rotations[i].w, ":", rotations[i].x, ":", rotations[i].y, ":", rotations[i].z, i < pins_mpu_amount - 1 ? "____" : "");
 	}
-	println("\n------------------------------------------------------------------------------------------------------------------------------------------------------------");
+    println("");
 */
+
 	//print("Flex: ");
-	for(int i = 0; i < fitrFingers; i++) {
-		setRegistry(HIGH, i + 1);
-		int flex = analogRead(pinFlexSensors);
+	for(int i = 0, flow = 0, fhigh = 0, flex = 0; i < pins_fs_amount; i++) {
+        flow = flexionLows[i];
+        fhigh = flexionHighs[i];
+        flex = analogRead(pins_fs[i]);
 
-		float maxTransition = 1.2f;
+		if(flow == 0 && fhigh == 0) flexionLows[i] = flexionHighs[i] = flex;
+        else if(flex < flow) flexionLows[i] = flex;
+        else if(flex > fhigh) flexionHighs[i] = flex;
 
-		if(lowestFlexValue == 0 && highestFlexValue == 0) {
-			//lowestFlexValue = highestFlexValue = flex;
-			lowestFlexValue = 10;
-			highestFlexValue = 80;
-		} else if(flex < lowestFlexValue) {
-			flex = lowestFlexValue;
-			//lowestFlexValue = flex;
-		} else if(flex > highestFlexValue) {
-			flex = highestFlexValue;
-			//highestFlexValue = flex;
-		}
-
-		flexions[i] = (int)((float)(flex - lowestFlexValue) / (float)(highestFlexValue - lowestFlexValue) * 100.0f);
-		//print(flexions[i], ", ");
+		flexions[i] = (int)((float)(flex - flow) / (float)(fhigh - flow) * 100.0f);
+		//print(i == 0 ? "" : ", ", flexions[i], "(", flex, ")");
 	}
 	//println("");
 
