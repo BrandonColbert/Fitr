@@ -60,7 +60,7 @@ class FitrMemory {
 			cq(hand.rotation);
 
 			for(int i = 0; i < hand.totalFingers; i++) {
-				cf((float)hand[i].flex);
+				cf(hand[i].flex);
 				cq(hand[i].rotation);
 			}
 

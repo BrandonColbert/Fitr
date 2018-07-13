@@ -1,0 +1,3 @@
+test for a connection on unconnected mpus every so often to allow plug in and plug out mpus
+
+TRY CHANGING ONLY THE YAW TO SYNC DIRECTION (IT WORKED YES)

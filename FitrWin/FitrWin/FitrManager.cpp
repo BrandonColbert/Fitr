@@ -44,7 +44,7 @@ void FitrManager::stop() {
 
 void FitrManager::utilize(char code, char *data, int bytes) {
 	auto fingerFlex = [&](int index) {
-		decodeInt((*hand)[index].flex, data, bytes);
+		decodeFloat((*hand)[index].flex, data, bytes);
 	};
 
 	auto fingerRot = [&](int index) {

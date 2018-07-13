@@ -5,7 +5,7 @@
 
 struct Finger {
     public:
-        int flex = 0;
+        float flex = 0.0f;
         FitrQuaternion rotation;
 };
 

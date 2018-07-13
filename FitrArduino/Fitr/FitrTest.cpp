@@ -6,29 +6,27 @@
 using namespace std;
 using namespace Transmit;
 
-ostream& operator<<(ostream &stream, Vector3 &angles) {
-	return stream << "Vector3(" << angles.x << ", " << angles.y << ", " << angles.z << ")";
-}
-
-ostream& operator<<(ostream &stream, Quaternion &angles) {
+ostream& operator<<(ostream &stream, FitrQuaternion &angles) {
 	return stream << "Quaternion(" << angles.x << ", " << angles.y << ", " << angles.z << ", " << angles.w << ")";
 }
 
-ostream& operator<<(ostream &stream, AccelGyro &angles) {
-	return stream << "AccelGyro(" << angles.ax << ", " << angles.ay << ", " << angles.az << ", " << angles.gx << ", " << angles.gy << ", " << angles.gz  << ")";
-}
-
 int main() {
-	float value = 20734.52474f;
-	List<char> data = encodeFloat(value);
+	FitrQuaternion v(0.123f, -0.123f, 1.01f, -0.998f);
+	cout << "Have " << v << endl;
 
-	float re;
-	char *arr = data.array();
-	decodeFloat(re, arr, data.size());
+    List<char> d = encodeQuaternion(v);
+    char *arr = d.array();
+
+    for(int i = 0; i < d.size(); i++) {
+        cout << "\tAt index " << i << " -> " << (int)arr[i] << endl;
+    }
+
+	FitrQuaternion r;
+	decodeQuaternion(r, arr, d.size());
+	cout << "Got " << r << endl;
+
+	d.clear();
 	delete arr;
-	data.clear();
-
-	cout << "Reconstructed " << setprecision(12) << re << ", original was " << value << endl;
 
     return 0;
 }
@@ -231,6 +229,19 @@ void example8() {
 	delete[] arr3;
 
 	cout << "Transported as " << a3 << " and ended up as " << rea3 << endl;
+}
+
+void example9() {
+	float value = 20734.52474f;
+	List<char> data = encodeFloat(value);
+
+	float re;
+	char *arr = data.array();
+	decodeFloat(re, arr, data.size());
+	delete arr;
+	data.clear();
+
+	cout << "Reconstructed " << setprecision(12) << re << ", original was " << value << endl;
 }
 
 */

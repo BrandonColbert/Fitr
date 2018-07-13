@@ -58,8 +58,10 @@
      <Compile Include="Assets\ProCore\ProBuilder\API Examples\Runtime Editing\RuntimeEdit.cs" />
      <Compile Include="Assets\ProCore\ProBuilder\API Examples\Vertex Colors\HighlightNearestFace.cs" />
      <Compile Include="Assets\Scripts\FingerMotionTest.cs" />
-     <Compile Include="Assets\Scripts\FitrHand.cs" />
-     <Compile Include="Assets\Scripts\FitrMemory.cs" />
+     <Compile Include="Assets\Scripts\Fitr\FitrHand.cs" />
+     <Compile Include="Assets\Scripts\Fitr\FitrMemory.cs" />
+     <Compile Include="Assets\Scripts\Fitr\FitrQuaternion.cs" />
+     <Compile Include="Assets\Scripts\Fitr\Handedness.cs" />
      <Compile Include="Assets\Scripts\GauntletTester.cs" />
      <Compile Include="Assets\Scripts\InfinityGauntlet\FixedSpatialObject.cs" />
      <Compile Include="Assets\Scripts\InfinityGauntlet\InfinityGauntlet.cs" />
@@ -70,8 +72,9 @@
      <Compile Include="Assets\Scripts\InfinityGauntlet\StoneSoul.cs" />
      <Compile Include="Assets\Scripts\InfinityGauntlet\StoneSpace.cs" />
      <Compile Include="Assets\Scripts\InfinityGauntlet\StoneTime.cs" />
-     <Compile Include="Assets\Scripts\PlugValue.cs" />
-     <Compile Include="Assets\Scripts\SwapAxis.cs" />
+     <Compile Include="Assets\Scripts\Utils\CopyPosition.cs" />
+     <Compile Include="Assets\Scripts\Utils\PlugValue.cs" />
+     <Compile Include="Assets\Scripts\Utils\SwapAxis.cs" />
      <None Include="Assets\ProCore\ProBuilder\Shader\pb_TransparentOverlay.shader" />
      <None Include="Assets\ProCore\ProBuilder\API Examples\Icosphere FFT\README.txt" />
      <None Include="Assets\ProCore\ProBuilder\Shader\pb_SelectionPicker.shader" />
