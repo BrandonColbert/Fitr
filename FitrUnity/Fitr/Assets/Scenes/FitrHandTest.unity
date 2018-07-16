@@ -178,6 +178,12 @@ Transform:
   m_Father: {fileID: 0}
   m_RootOrder: 1
   m_LocalEulerAnglesHint: {x: 50, y: -30, z: 0}
+--- !u!114 &148249835 stripped
+MonoBehaviour:
+  m_PrefabParentObject: {fileID: 114841314284711010, guid: 27193da0e56dad74fb1cc3bb618ffa4d,
+    type: 2}
+  m_PrefabInternal: {fileID: 1705627140}
+  m_Script: {fileID: 11500000, guid: 67fa0b6a9cc255c4f8bea31e9ba7b0fa, type: 3}
 --- !u!1 &1009844574
 GameObject:
   m_ObjectHideFlags: 0
@@ -267,6 +273,7 @@ GameObject:
   serializedVersion: 5
   m_Component:
   - component: {fileID: 1613036743}
+  - component: {fileID: 1613036745}
   - component: {fileID: 1613036744}
   m_Layer: 0
   m_Name: MotionTester
@@ -282,7 +289,7 @@ Transform:
   m_PrefabInternal: {fileID: 0}
   m_GameObject: {fileID: 1613036742}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -0.673, y: 0, z: 0}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 0}
@@ -299,7 +306,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1cf1e35c72055da43afc9bd8b8227fb0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  hand: {fileID: 0}
+  hand: {fileID: 148249835}
   autoTest: 0
   testers:
   - fingerNumber: 0
@@ -317,6 +324,19 @@ MonoBehaviour:
   - fingerNumber: 4
     rotation: {x: 0, y: 0, z: 0}
     flex: 0
+--- !u!114 &1613036745
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 1613036742}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: eeffc0c7d7ca4f240b93a24d15c7cab5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  hand: {fileID: 148249835}
+  gesture: 0
 --- !u!1001 &1705627140
 Prefab:
   m_ObjectHideFlags: 0
@@ -355,6 +375,11 @@ Prefab:
     - target: {fileID: 4093322261312912, guid: 27193da0e56dad74fb1cc3bb618ffa4d, type: 2}
       propertyPath: m_RootOrder
       value: 3
+      objectReference: {fileID: 0}
+    - target: {fileID: 114841314284711010, guid: 27193da0e56dad74fb1cc3bb618ffa4d,
+        type: 2}
+      propertyPath: m_Enabled
+      value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_ParentPrefab: {fileID: 100100000, guid: 27193da0e56dad74fb1cc3bb618ffa4d, type: 2}

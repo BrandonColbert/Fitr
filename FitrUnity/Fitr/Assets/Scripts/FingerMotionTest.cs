@@ -17,8 +17,8 @@ public class FingerMotionTest : MonoBehaviour {
 
 	void FixedUpdate() {
 		for(int i = 0; i < testers.Length; i++) {
-			//FingerMotion fm = testers[i];
-/*
+			FingerMotion fm = testers[i];
+
 			FitrHand.Finger[] fingers = hand.GetFingers();
 			if(0 <= fm.fingerNumber && fm.fingerNumber < fingers.Length) {
 				if(autoTest) {
@@ -65,8 +65,14 @@ public class FingerMotionTest : MonoBehaviour {
 					testers[i] = fm;
 				}
 
-				hand.MoveFinger(fingers[fm.fingerNumber], Quaternion.Euler(fm.rotation), fm.flex);
-			}*/
+				if(i == 0) hand.thumb.flex = fm.flex;
+				else if(i == 1) hand.index.flex = fm.flex;
+				else if(i == 2) hand.middle.flex = fm.flex;
+				else if(i == 3) hand.ring.flex = fm.flex;
+				else if(i == 4) hand.pinky.flex = fm.flex;
+
+				hand.MoveFinger(ref fingers[fm.fingerNumber], new FitrQuaternion(Quaternion.Euler(fm.rotation)), fm.flex);
+			}
 		}
 	}
 }

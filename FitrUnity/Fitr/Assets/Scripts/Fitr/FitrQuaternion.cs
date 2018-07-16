@@ -10,6 +10,10 @@ public class FitrQuaternion {
     public bool hasOrigin;
     private Quaternion actual = Quaternion.identity, origin = Quaternion.identity, offsetOrigin = Quaternion.identity;
 
+    public FitrQuaternion(Quaternion q) {
+        v = q;
+    }
+
     public Quaternion v {
         set {
             actual = new Quaternion(value.x, value.y, value.w, value.z);

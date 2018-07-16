@@ -4,12 +4,12 @@ using UnityEngine;
 
 public class GauntletTester : MonoBehaviour {
     public Texture2D crosshairImage;
-	public StoneTime timeStone;
 
     private float scrub;
     private bool active;
     private bool wasActive;
-    
+
+    public StoneTime timeStone;    
     public StoneSpace spaceStone;
     public StoneMind mindStone;
     public StonePower powerStone;

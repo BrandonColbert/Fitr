@@ -2699,14 +2699,14 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   originSet: 0
   displayInactiveFingers: 0
-  showFlex: 0
+  showFlex: 1
   handedness: 1
   smoothTime: 0.01
   palm: {fileID: 1836510785919436}
   palmRotation:
     offset: {fileID: 0}
   thumb:
-    connected: 0
+    connected: 1
     flex: 0
     rotation:
       offset: {fileID: 4580839057447144}

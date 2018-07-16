@@ -93,4 +93,8 @@ public class FitrHand : MonoBehaviour {
 			if(finger.c != null) finger.c.transform.localRotation = Quaternion.identity;
 		}
 	}
+
+	public Finger[] GetFingers() {
+		return new Finger[]{thumb, index, middle, ring, pinky};
+	}
 }
