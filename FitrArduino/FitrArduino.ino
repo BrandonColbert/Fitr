@@ -5,7 +5,10 @@
 #include "I2Cdev.h"
 #include "Wire.h"
 
+#include <SoftwareSerial.h>
+
 //#define FITR_DEBUG
+//#define FITR_BT
 
 using namespace Transmit;
 using namespace FitrPrint;
@@ -19,9 +22,9 @@ const int pin_i2c_data = 4;
 
 //ax, ay, az, gx, gy, gz
 const int mpu_offsets[][pins_mpu_amount] = {
-	{-3540,   35,   -26,  98,  10,  22}, //palm
-	{    0,    0,     0,   0,   0,   0}, //thumb
-	{ 1405,  -73,  1277,  72,   0,   9}, //index
+	{-3540,    35,  -26,  98,  10,  22}, //palm
+	{-3859, -2449, 1207, 157,   4, -30}, //thumb
+	{ 1405,   -73, 1277,  72,   0,   9}, //index
 	{ 1394,   274,  872,  82, -13,  29}, //middle
 	{-2386,  -414, 1606,  41,  64,  20}, //ring
 	{-2124,  2999, 1319,  93, -33, -41}, //pinky
@@ -38,6 +41,8 @@ uint8_t fifoBuffer[64];
 uint16_t packetSize;
 MPU6050 mpu;
 
+SoftwareSerial hc05(10, 11);
+
 List<char> transmitBuffer;
 template<typename T>
 void transmitSend(char code, List<char> &&data) {
@@ -50,16 +55,24 @@ void transmitSend(char code, List<char> &&data) {
 void transmitFlush() {
 	char *d = transmitBuffer.array();
 
-    #ifndef FITR_DEBUG
-    	Serial.write(d, transmitBuffer.size());
-    #endif
+	#ifndef FITR_DEBUG
+		#ifdef FITR_BT
+			hc05.write(d, transmitBuffer.size());
+		#else
+			Serial.write(d, transmitBuffer.size());
+		#endif
+	#endif
 
 	delete d;
 	transmitBuffer.clear();
 }
 
 void setup() {
-	Serial.begin(FITR_BR);
+	#ifdef FITR_BT
+		hc05.begin(FITR_BR);
+	#else
+		Serial.begin(FITR_BR);
+	#endif
 
 	for(int i = 0, pin = 0; i < pins_mpu_amount; i++) {
         pin = pins_mpu[i];
@@ -71,7 +84,11 @@ void setup() {
 	TWBR = 4;//24;
 
 	#ifndef FITR_DEBUG
-		while(!(Serial.available() > 0));
+		#ifdef FITR_BT
+			while(!(hc05.available() > 0));
+		#else
+			while(!(Serial.available() > 0));
+		#endif
 	#endif
 
 	for(int i = 0, pin = 0; i < pins_mpu_amount; i++) {

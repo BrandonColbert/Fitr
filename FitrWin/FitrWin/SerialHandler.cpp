@@ -1,5 +1,7 @@
 #include "SerialHandler.h"
 
+//#define DEBUG_FITR
+
 using namespace std;
 using namespace Transmit;
 using namespace FitrPrint;
@@ -32,6 +34,10 @@ void SerialHandler::handleWith(SerialConnection &serial, FitrManager &manager) {
 
 		if (serial.read(buffer, 1) > 0) {
 			if(ensure) {
+#ifdef DEBUG_FITR
+				println("\t\tFetched: ", (int)buffer[0]);
+#endif
+
 				if (transmitCode == Code::NONE) {
 					transmitCode = buffer[0];
 				} else if (amount == -1) {

@@ -62,7 +62,7 @@ public class FitrGestures : MonoBehaviour {
 
 	bool CheckOpenHand(FitrHand.Finger[] fingers) {
 		foreach(FitrHand.Finger finger in fingers) {
-			if(finger.flex > 0.15f || Mathf.Abs(finger.a.transform.localEulerAngles.x) > 15f) {
+			if(finger.flex > 0.15f || Vector3.Dot(finger.a.transform.forward, Vector3.up) < 0.9f) {
 				return false;
 			}
 		}
@@ -76,17 +76,6 @@ public class FitrGestures : MonoBehaviour {
 
 			if(finger.flex < 0.75f) {
 				return false;
-			}
-			
-			if(i == 0) {
-				if(finger.a.transform.localEulerAngles.y < 20) {
-					return false;
-				}
-			} else {
-				if(!(280f <= finger.a.transform.localEulerAngles.x && finger.a.transform.localEulerAngles.x <= 360f &&
-				     160f <= finger.a.transform.localEulerAngles.y && finger.a.transform.localEulerAngles.y <= 200f)) {
-					return false;
-				}
 			}
 		}
 
@@ -105,18 +94,6 @@ public class FitrGestures : MonoBehaviour {
 				//CheckFist
 				if(finger.flex < 0.75f) {
 					return false;
-				}
-
-				//CheckFist
-				if(i == 0) {
-					if(finger.a.transform.localEulerAngles.y < 20) {
-						return false;
-					}
-				} else {
-					if(!(280f <= finger.a.transform.localEulerAngles.x && finger.a.transform.localEulerAngles.x <= 360f &&
-						160f <= finger.a.transform.localEulerAngles.y && finger.a.transform.localEulerAngles.y <= 200f)) {
-						return false;
-					}
 				}
 			}
 		}
